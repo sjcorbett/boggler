@@ -3,12 +3,21 @@ package sjcorbett.boggle;
 import com.google.common.base.MoreObjects;
 
 public class GridReference {
+
     final int x;
     final int y;
 
     public GridReference(int x, int y) {
         this.x = x;
         this.y = y;
+    }
+
+    public int getX() {
+        return x;
+    }
+
+    public int getY() {
+        return y;
     }
 
     @Override

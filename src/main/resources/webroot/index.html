@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Baggle beggle biggle boggle buggle</title>
+    <!--<script src="/static/lib/jquery-2.1.4.js"></script>-->
+    <script src="http://localhost:8080/static/lib/jquery-2.1.4.js"></script>
+    <script src="http://localhost:8080/static/lib/jquery.mousewheel.js"></script>
+    <script src="http://localhost:8080/static/lib/lodash.js"></script>
+
+    <style type="text/css">
+        .gridLetter {
+            float: left;
+            border: 2px solid lightgray;
+            width: 50px;
+            height: 50px;
+            line-height: 50px;
+            text-transform: capitalize;
+            font-size: 2em;
+            text-align: center;
+        }
+        .gridLetter:hover {
+            background-color: rgb(255, 144, 86);
+        }
+        .row {
+            clear: both;
+        }
+        #gridDisplay {
+            cursor: pointer;
+        }
+        span.word {
+            padding: 4px;
+            cursor: pointer;
+            line-height: 1.2em;
+            letter-spacing: 0.05em;
+        }
+        span.word:hover,
+        span.word.highlight {
+            color: red;
+        }
+        .pointer {
+            cursor: pointer;
+        }
+        #gridIn {
+            width: 95%;
+        }
+
+        /* general positioning */
+        html,
+        body {
+            height: 100%;
+            margin: 0
+        }
+
+        .box {
+            display: flex;
+            flex-flow: row;
+            height: 100%;
+        }
+
+        .box .boxrow {
+            flex: 0 1 30px;
+        }
+
+        .box .boxrow.fixed {
+            flex: 0 0 auto;
+        }
+
+        .box .boxrow.auto {
+            flex: 1 1 auto;
+        }
+        #words {
+            overflow: scroll;
+        }
+    </style>
+
+</head>
+<body>
+
+
+    <div class="box">
+        <div class="boxrow fixed">
+            <div id="gridDisplay"></div>
+            <form>
+                <label for="gridIn">Grid</label><textarea id="gridIn" class="observed" rows="2"></textarea>
+                <br/>
+                <label for="minLength">Minimum word length</label><input id="minLength" class="observed" type="number" value="5" step="1">
+            </form>
+            <div id="stats"></div>
+        </div>
+        <div id="words" class="boxrow auto"></div>
+    </div>
+
+    <script>
+
+        // From http://www.sitepoint.com/javascript-generate-lighter-darker-color/.
+        var colourLuminance = function (hex, lum) {
+        	// validate hex string
+        	hex = String(hex).replace(/[^0-9a-f]/gi, '');
+        	if (hex.length < 6) {
+        		hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+        	}
+        	lum = lum || 0;
+
+        	// convert to decimal and change luminosity
+        	var rgb = "#", c, i;
+        	for (i = 0; i < 3; i++) {
+        		c = parseInt(hex.substr(i*2,2), 16);
+        		c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+        		rgb += ("00"+c).substr(c.length);
+        	}
+
+        	return rgb;
+        };
+
+
+        // ========== Grid paths =======================================================
+
+        var clearGridHighlight = function () {
+            $(".highlight").removeClass("highlight").css("background-color", "");
+        };
+
+        var highlightPath = function (path) {
+            // path is array of row/column pairs.
+            var firstColour = "#905030";
+            var increment = 0.1;
+            for (var i = 0; i < path.length; i += 2) {
+                var row = path[i];
+                var column = path[i+1];
+                var nextColour = colourLuminance(firstColour, increment*i);
+                $(".idx-" + row + "-" + column)
+                        .addClass("highlight")
+                        .css("background-color", nextColour);
+            }
+        };
+
+        var highlightGridReference = function (e) {
+            var target = $(e.target);
+            var row = "" + target.data("x");
+            var column = "" + target.data("y");
+            var color = "rgb(255, 144, 86)";
+            $(".idx-" + row + "-" + column)
+                    .addClass("highlight")
+                    .css("background-color", color);
+        };
+
+        $(document).on("mouseover", ".word", function (e) {
+            var path = $(e.target).data("path").split(",");
+            highlightPath(path);
+        });
+        $(document).on("mouseout", ".word", clearGridHighlight);
+
+        $(document).on("mouseover", ".gridReference", highlightGridReference);
+        $(document).on("mouseout", ".gridReference", clearGridHighlight);
+
+        // ========== Grid hovers ======================================================
+
+        var clearLetterHighlight = function () {
+            $(".word").removeClass("highlight");
+        };
+
+        var highlightWordsUsing = function (e) {
+            var target = $(e.target);
+            var x = "" + target.data("x");
+            var y = "" + target.data("y");
+            $(".word").each(function (idx, el) {
+                // Could improve this by only checking path if x+y can be reached from the
+                // word's starting coordinates.
+                var $el = $(el);
+                var path = $el.data("path").split(",");
+                for (var i = 0; i < path.length; i += 2) {
+                    if (path[i] === x && path[i + 1] === y) {
+                        $el.addClass("highlight");
+                        break;
+                    }
+                }
+            });
+        };
+
+        var highlightWordsStarting = function (e) {
+            var target = $(e.target);
+            var x = "" + target.data("x");
+            var y = "" + target.data("y");
+            $(".word").each(function (idx, el) {
+                var $el = $(el);
+                var path = $el.data("path").split(",");
+                if (path[0] === x && path[1] === y) {
+                    $el.addClass("highlight");
+                }
+            });
+        };
+
+        $(document).on("mouseover", ".letter", highlightWordsUsing);
+        $(document).on("mouseout", ".letter", clearLetterHighlight);
+
+
+        // ========== Stats ===========================================================
+
+        var renderStats = function (data) {
+            var $el = $("#stats");
+            var template = _.template(
+                    "<ul>" +
+                        "<li><strong><%= totalWords %></strong> words in total</li>" +
+                        "<li>Longest word: <strong class='longestWord pointer'><%= longestWord %></strong> (<%= longestWord.length %> characters)</li>" +
+                        "<li>Most useful letter: " +
+                            "<strong class='letter pointer gridReference' data-x='<%= bestPoint.x %>' data-y='<%= bestPoint.y %>'><%= bestPoint.letter %> at (<%= bestPoint.x %>, <%= bestPoint.y %>)</strong>, " +
+                            "used in <%= bestPoint.count %> words" +
+                        "</li>" +
+                        "<li>Most useful starting letter: " +
+                            "<strong class='letterStarting pointer gridReference' data-x='<%= bestStart.x %>' data-y='<%= bestStart.y %>'><%= bestStart.letter %> at (<%= bestStart.x %>, <%= bestStart.y %>)</strong>, " +
+                            "used in <%= bestStart.count %> words" +
+                        "</li>" +
+                    "</ul>"
+            );
+            $el.html(template(data));
+        };
+
+
+        $(document).on("mouseover", ".longestWord", function (e) {
+            var word = $(e.target).html();
+            // get word's path
+            var path = $("#word-" + word).data("path").split(",");
+            highlightPath(path);
+        });
+        $(document).on("mouseout", ".longestWord", clearGridHighlight);
+        $(document).on("mouseover", ".letterStarting", highlightWordsStarting);
+        $(document).on("mouseout", ".letterStarting", clearLetterHighlight);
+
+        // ========== Grid grid =======================================================
+
+        var renderGrid = function (grid) {
+            var gd = $("#gridDisplay").empty();
+            var rowTemplate = _.template(
+                    "<div class='row'>" +
+                        "<% _.forEach(chars, function(char, column) { %>" +
+                            "<div class='gridLetter letter idx-<%= row %>-<%= column %>' data-x='<%= row %>' data-y='<%= column %>'>" +
+                                "<%= char %>" +
+                            "</div>" +
+                        "<% }); %>" +
+                    "</div>");
+            _.each(grid.split(" "), function (row, index) {
+                gd.append(rowTemplate({chars: row, row: index}));
+            });
+            $("#gridUnderlay").height(gd.height())
+                    .width(gd.height());
+        };
+
+        var listWords = function (words) {
+            var template = _.template("<span id='word-<%= word %>' class='word' data-path='<%= path %>'><%= word %></span> ");
+            var html = _.map(words, template);
+            $("#words").html(html.join(""));
+        };
+
+        var refreshItAll = function (e) {
+            var grid = $("#gridIn").val();
+            renderGrid(grid);
+            var minLength = $("#minLength").val() || 3;
+            $.ajax({
+                url: "http://localhost:8080/bogglemetimbers",
+                data: {
+                    grid: grid,
+                    minLength: minLength
+                }
+            }).done(function (response) {
+                var sorted = _.sortBy(response.words, "word");
+                listWords(sorted);
+                renderStats(response.data)
+            });
+        };
+        $(".observed").on("change", refreshItAll);
+        $('#minLength').on('mousewheel', refreshItAll);
+
+//        $("#gridIn").val("CUBSIDSEV LRATEHLYA SCABDIALL UKGOOSEDI MAINHTYAM TOAMUODNU OIADERROT RKIRTYALE ANVILVTLD").trigger("change");
+        $("#gridIn").val("etagaporp lybloublu areiddoeu nadliuell otnhgnnma iluhtngnt tqmidraer aaratyoru nrkiteret").trigger("change");
+    </script>
+
+</body>
+</html>

@@ -30,6 +30,10 @@ public class GridWord implements Comparable<GridWord> {
         return word;
     }
 
+    public List<GridReference> getPath() {
+        return path;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
