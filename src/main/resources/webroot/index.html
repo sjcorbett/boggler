@@ -90,6 +90,32 @@
         <div id="words" class="boxrow auto"></div>
     </div>
 
+    <script id=template-stats type=text/template>
+        <ul>
+            <li><strong><%= totalWords %></strong> words in total</li>
+            <li>Longest word: <strong class='longestWord pointer'><%= longestWord %></strong> (<%= longestWord.length %> characters)</li>
+            <li>Most useful letter:
+                <strong class='letter pointer gridReference' data-x='<%= bestPoint.x %>' data-y='<%= bestPoint.y %>'><%= bestPoint.letter %> at (<%= bestPoint.x %>, <%= bestPoint.y %>)</strong>,
+                used in <%= bestPoint.count %> words
+            </li>
+            <li>Most useful starting letter:
+                <strong class='letterStarting pointer gridReference' data-x='<%= bestStart.x %>' data-y='<%= bestStart.y %>'><%= bestStart.letter %> at (<%= bestStart.x %>, <%= bestStart.y %>)</strong>,
+                used in <%= bestStart.count %> words
+            </li>
+        </ul>
+    </script>
+
+    <script id="template-grid-row" type="text/template">
+        <div class='row'>
+            <% _.forEach(chars, function(char, column) { %>
+                <div class='gridLetter letter idx-<%= row %>-<%= column %>' data-x='<%= row %>' data-y='<%= column %>'>
+                    <%= char %>
+                </div>
+            <% }); %>
+        </div>
+    </script>
+
+
     <script>
 
         // From http://www.sitepoint.com/javascript-generate-lighter-darker-color/.
@@ -197,20 +223,7 @@
 
         var renderStats = function (data) {
             var $el = $("#stats");
-            var template = _.template(
-                    "<ul>" +
-                        "<li><strong><%= totalWords %></strong> words in total</li>" +
-                        "<li>Longest word: <strong class='longestWord pointer'><%= longestWord %></strong> (<%= longestWord.length %> characters)</li>" +
-                        "<li>Most useful letter: " +
-                            "<strong class='letter pointer gridReference' data-x='<%= bestPoint.x %>' data-y='<%= bestPoint.y %>'><%= bestPoint.letter %> at (<%= bestPoint.x %>, <%= bestPoint.y %>)</strong>, " +
-                            "used in <%= bestPoint.count %> words" +
-                        "</li>" +
-                        "<li>Most useful starting letter: " +
-                            "<strong class='letterStarting pointer gridReference' data-x='<%= bestStart.x %>' data-y='<%= bestStart.y %>'><%= bestStart.letter %> at (<%= bestStart.x %>, <%= bestStart.y %>)</strong>, " +
-                            "used in <%= bestStart.count %> words" +
-                        "</li>" +
-                    "</ul>"
-            );
+            var template = _.template($("#template-stats").html());
             $el.html(template(data));
         };
 
@@ -229,14 +242,7 @@
 
         var renderGrid = function (grid) {
             var gd = $("#gridDisplay").empty();
-            var rowTemplate = _.template(
-                    "<div class='row'>" +
-                        "<% _.forEach(chars, function(char, column) { %>" +
-                            "<div class='gridLetter letter idx-<%= row %>-<%= column %>' data-x='<%= row %>' data-y='<%= column %>'>" +
-                                "<%= char %>" +
-                            "</div>" +
-                        "<% }); %>" +
-                    "</div>");
+            var rowTemplate = _.template($("#template-grid-row").html());
             _.each(grid.split(" "), function (row, index) {
                 gd.append(rowTemplate({chars: row, row: index}));
             });
