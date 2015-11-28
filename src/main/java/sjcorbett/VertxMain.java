@@ -61,7 +61,9 @@ public class VertxMain {
         router.route("/static/*").handler(staticHandler);
         router.route("/").handler(staticHandler);
 
-        server.requestHandler(router::accept).listen(8080);
+        final Integer port = Integer.getInteger("http.port", 8080);
+        final String host = System.getProperty("http.address", "localhost");
+        server.requestHandler(router::accept).listen(port, host);
 
     }
 
