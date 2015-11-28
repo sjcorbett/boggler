@@ -7,6 +7,7 @@ import java.util.stream.Collectors;
 import com.google.common.net.HttpHeaders;
 import com.google.common.net.MediaType;
 
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.HttpServer;
@@ -24,11 +25,18 @@ import sjcorbett.boggle.Stats;
 import sjcorbett.trie.Trie;
 import sjcorbett.trie.Tries;
 
-public class VertxMain {
+public class VertxMain extends AbstractVerticle {
 
     public static void main(String[] args) throws Exception {
-
+        VertxMain main = new VertxMain();
         Vertx vertx = Vertx.vertx();
+        main.init(vertx, vertx.getOrCreateContext());
+        main.start();
+    }
+
+    @Override
+    public void start() throws Exception {
+        super.start();
 
         HttpServer server = vertx.createHttpServer();
 
