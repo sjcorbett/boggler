@@ -3,9 +3,9 @@
 <head>
     <title>Baggle beggle biggle boggle buggle</title>
     <!--<script src="/static/lib/jquery-2.1.4.js"></script>-->
-    <script src="http://localhost:8080/static/lib/jquery-2.1.4.js"></script>
-    <script src="http://localhost:8080/static/lib/jquery.mousewheel.js"></script>
-    <script src="http://localhost:8080/static/lib/lodash.js"></script>
+    <script src="/static/lib/jquery-2.1.4.js"></script>
+    <script src="/static/lib/jquery.mousewheel.js"></script>
+    <script src="/static/lib/lodash.js"></script>
 
     <style type="text/css">
         .gridLetter {
@@ -261,7 +261,7 @@
             renderGrid(grid);
             var minLength = $("#minLength").val() || 3;
             $.ajax({
-                url: "http://localhost:8080/bogglemetimbers",
+                url: "/bogglemetimbers",
                 data: {
                     grid: grid,
                     minLength: minLength
