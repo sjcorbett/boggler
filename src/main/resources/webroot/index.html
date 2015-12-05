@@ -2,9 +2,7 @@
 <html>
 <head>
     <title>Baggle beggle biggle boggle buggle</title>
-    <!--<script src="/static/lib/jquery-2.1.4.js"></script>-->
     <script src="/static/lib/jquery-2.1.4.js"></script>
-    <script src="/static/lib/jquery.mousewheel.js"></script>
     <script src="/static/lib/lodash.js"></script>
 
     <style type="text/css">
@@ -71,21 +69,40 @@
         #words {
             overflow: scroll;
         }
+
+        #gridForm {
+            padding: 15px 10px 0 10px;
+            /* i.e. the height of one grid box */
+            margin-top: 50px;
+        }
+        #gridForm label {
+            margin-top: 10px;
+            font-weight: bold;
+        }
+        #gridForm input, #gridForm textarea {
+            margin: 5px;
+        }
     </style>
 
 </head>
 <body>
 
-
     <div class="box">
         <div class="boxrow fixed">
             <div id="gridDisplay"></div>
-            <form>
-                <label for="gridIn">Grid</label><textarea id="gridIn" class="observed" rows="2"></textarea>
-                <br/>
-                <label for="minLength">Minimum word length</label><input id="minLength" class="observed" type="number" value="5" step="1">
-            </form>
-            <div id="stats"></div>
+            <div id="gridForm">
+                <form>
+                    <label for="gridIn">Grid</label>
+                    <br/>
+                    <textarea id="gridIn" class="observed" rows="2"></textarea>
+                    <br/>
+                    <label for="minLength">Minimum word length</label>
+                    <br/>
+                    <input id="minLength" class="observed" type="number" value="5" step="1">
+                </form>
+                <h3>Stats</h3>
+                <div id="stats"></div>
+            </div>
         </div>
         <div id="words" class="boxrow auto"></div>
     </div>
@@ -273,10 +290,9 @@
             });
         };
         $(".observed").on("change", refreshItAll);
-        $('#minLength').on('mousewheel', refreshItAll);
 
-//        $("#gridIn").val("CUBSIDSEV LRATEHLYA SCABDIALL UKGOOSEDI MAINHTYAM TOAMUODNU OIADERROT RKIRTYALE ANVILVTLD").trigger("change");
-        $("#gridIn").val("etagaporp lybloublu areiddoeu nadliuell otnhgnnma iluhtngnt tqmidraer aaratyoru nrkiteret").trigger("change");
+        $("#gridIn").val("etagaporp lybloublu areiddoeu nadliuell otnhgnnma iluhtngnt tqmidraer aaratyoru nrkiteret")
+                .trigger("change");
     </script>
 
 </body>
