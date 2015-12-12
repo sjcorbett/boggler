@@ -79,7 +79,7 @@
             margin-top: 10px;
             font-weight: bold;
         }
-        #gridForm input, #gridForm textarea {
+        #gridForm input {
             margin: 5px;
         }
     </style>
@@ -94,11 +94,11 @@
                 <form>
                     <label for="gridIn">Grid</label>
                     <br/>
-                    <textarea id="gridIn" class="observed" rows="2"></textarea>
+                    <input id="gridIn" class="observed" type="text"></input>
                     <br/>
                     <label for="minLength">Minimum word length</label>
                     <br/>
-                    <input id="minLength" class="observed" type="number" value="5" step="1">
+                    <input id="minLength" class="observed" type="number" value="3" step="1">
                 </form>
                 <h3>Stats</h3>
                 <div id="stats"></div>
@@ -291,7 +291,7 @@
         };
         $(".observed").on("change", refreshItAll);
 
-        $("#gridIn").val("etagaporp lybloublu areiddoeu nadliuell otnhgnnma iluhtngnt tqmidraer aaratyoru nrkiteret")
+        $("#gridIn").val("hello typel etter sdown below")
                 .trigger("change");
     </script>
 
